@@ -2,17 +2,16 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const TelegramBot = require("node-telegram-bot-api");
+require("dotenv").config();
 
-const TOKEN = "5932966455:AAGSTRDRX5wxLZ6wsR8hSNVKByAJUbia_2w";
-
-const bot = new TelegramBot(TOKEN, { polling: true });
+const bot = new TelegramBot(process.env.TG_TOKEN, { polling: true });
 
 bot.on("message", async (message) => {
   if (message.text === "/start") {
     const chatID = message.chat.id;
     bot.sendMessage(chatID, "Welcome to pvcp bot!!!");
     try {
-      await fetch("http://localhost:3000/users", {
+      await fetch(`${process.env.API_URL}:${process.env.PORT}/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -23,25 +22,28 @@ bot.on("message", async (message) => {
       console.log("err", err);
     }
   } else if (message.text === "/getAllMessages") {
-    const data = await fetch("http://localhost:3000/messages");
+    const data = await fetch(
+      `${process.env.API_URL}:${process.env.PORT}/messages`
+    );
     const messages = await data.json();
     messages.forEach((m) => {
       bot.sendMessage(message.chat.id, prettify(m));
     });
   } else if (message.text === "/stop") {
     bot.sendMessage(message.chat.id, "Bye bye");
-    const res = await fetch("http://localhost:3000/users/" + message.chat.id, {
-      method: "DELETE",
-    });
+    await fetch(
+      `${process.env.API_URL}:${process.env.PORT}/users/${message.chat.id}`,
+      {
+        method: "DELETE",
+      }
+    );
   }
 });
 
 const app = express();
 app.use(cors());
 
-mongoose.connect(
-  "mongodb+srv://jahongir780110:Jahongir.780110@cluster0.a8eekjf.mongodb.net/"
-);
+mongoose.connect(process.env.DB_URL);
 const db = mongoose.connection;
 db.on("error", (error) => console.error(error));
 db.once("open", () => console.log("Connected to Database!!!"));
@@ -124,7 +126,7 @@ app.post("/messages", async (req, res) => {
   });
 });
 
-app.listen(3000, () => console.log("Server Started!!!"));
+app.listen(process.env.PORT, () => console.log("Server Started!!!"));
 
 function prettify(object) {
   let result = `Email: ${object.email}\n`;
