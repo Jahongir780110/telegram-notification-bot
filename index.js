@@ -2,7 +2,10 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const TelegramBot = require("node-telegram-bot-api");
+const fs = require("fs");
 require("dotenv").config();
+
+const file = fs.readFileSync("./2A3FE6409EEFE5EDFFF888A46FB538A6.txt");
 
 const bot = new TelegramBot(process.env.TG_TOKEN, { polling: true });
 
@@ -124,6 +127,10 @@ app.post("/messages", async (req, res) => {
   users.forEach((user) => {
     bot.sendMessage(user.chatId, prettify(message));
   });
+});
+
+app.get("/.well-known/pki-validation/", (req, res) => {
+  res.send(file);
 });
 
 app.listen(process.env.PORT, () => console.log("Server Started!!!"));
