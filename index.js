@@ -2,10 +2,12 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const TelegramBot = require("node-telegram-bot-api");
-const fs = require("fs");
-require("dotenv").config();
 
-const file = fs.readFileSync("./2A3FE6409EEFE5EDFFF888A46FB538A6.txt");
+const User = require("./models/user");
+const Message = require("./models/message");
+const prettify = require("./utils/prettify");
+
+require("dotenv").config();
 
 const bot = new TelegramBot(process.env.TG_TOKEN, { polling: true });
 
@@ -14,7 +16,7 @@ bot.on("message", async (message) => {
     const chatID = message.chat.id;
     bot.sendMessage(chatID, "Welcome to pvcp bot!!!");
     try {
-      await fetch(`${process.env.API_URL}:${process.env.PORT}/users`, {
+      await fetch(`/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -25,65 +27,28 @@ bot.on("message", async (message) => {
       console.log("err", err);
     }
   } else if (message.text === "/getAllMessages") {
-    const data = await fetch(
-      `${process.env.API_URL}:${process.env.PORT}/messages`
-    );
+    const data = await fetch(`/messages`);
     const messages = await data.json();
     messages.forEach((m) => {
       bot.sendMessage(message.chat.id, prettify(m));
     });
   } else if (message.text === "/stop") {
     bot.sendMessage(message.chat.id, "Bye bye");
-    await fetch(
-      `${process.env.API_URL}:${process.env.PORT}/users/${message.chat.id}`,
-      {
+    try {
+      await fetch(`/users/${message.chat.id}`, {
         method: "DELETE",
-      }
-    );
+      });
+    } catch (err) {
+      console.log("err", err);
+    }
   }
 });
 
 const app = express();
+
 app.use(cors());
-
-mongoose.connect(process.env.DB_URL);
-const db = mongoose.connection;
-db.on("error", (error) => console.error(error));
-db.once("open", () => console.log("Connected to Database!!!"));
-
 app.use(express.json());
-
-const User = mongoose.model(
-  "User",
-  new mongoose.Schema({
-    chatId: {
-      type: String,
-      required: true,
-    },
-  })
-);
-
-const Message = mongoose.model(
-  "Message",
-  new mongoose.Schema({
-    email: {
-      type: String,
-      required: true,
-    },
-    fullName: {
-      type: String,
-      required: false,
-    },
-    subject: {
-      type: String,
-      required: false,
-    },
-    message: {
-      type: String,
-      required: false,
-    },
-  })
-);
+app.use(express.static("public"));
 
 app.get("/users", async (req, res) => {
   const users = await User.find();
@@ -104,7 +69,6 @@ app.post("/users", async (req, res) => {
 });
 
 app.delete("/users/:id", (req, res) => {
-  console.log("working", req.params.id);
   const userId = req.params.id;
   User.deleteOne({ chatId: userId });
 });
@@ -129,22 +93,11 @@ app.post("/messages", async (req, res) => {
   });
 });
 
-app.get("/.well-known/pki-validation/", (req, res) => {
-  res.send(file);
-});
+app.listen(process.env.PORT, () =>
+  console.log(`Server is running on port ${process.env.PORT}`)
+);
 
-app.listen(process.env.PORT, () => console.log("Server Started!!!"));
-
-function prettify(object) {
-  let result = `Email: ${object.email}\n`;
-  if (object.fullName) {
-    result += `Full Name: ${object.fullName}\n`;
-  }
-  if (object.subject) {
-    result += `Subject: ${object.subject}\n`;
-  }
-  if (object.message) {
-    result += `Message: ${object.message}\n`;
-  }
-  return result;
-}
+mongoose.connect(process.env.DB_URL);
+const db = mongoose.connection;
+db.on("error", (error) => console.error(error));
+db.once("open", () => console.log("Connected to Database!!!"));
