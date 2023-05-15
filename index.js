@@ -16,7 +16,7 @@ bot.on("message", async (message) => {
     const chatID = message.chat.id;
     bot.sendMessage(chatID, "Welcome to pvcp bot!!!");
     try {
-      await fetch(`/users`, {
+      await fetch(`${process.env.API_URL}:${process.env.PORT}/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -27,7 +27,9 @@ bot.on("message", async (message) => {
       console.log("err", err);
     }
   } else if (message.text === "/getAllMessages") {
-    const data = await fetch(`/messages`);
+    const data = await fetch(
+      `${process.env.API_URL}:${process.env.PORT}/messages`
+    );
     const messages = await data.json();
     messages.forEach((m) => {
       bot.sendMessage(message.chat.id, prettify(m));
@@ -35,11 +37,14 @@ bot.on("message", async (message) => {
   } else if (message.text === "/stop") {
     bot.sendMessage(message.chat.id, "Bye bye");
     try {
-      await fetch(`/users/${message.chat.id}`, {
-        method: "DELETE",
-      });
+      await fetch(
+        `${process.env.API_URL}:${process.env.PORT}/users/${message.chat.id}`,
+        {
+          method: "DELETE",
+        }
+      );
     } catch (err) {
-      console.log("err", err);
+      console.log("err2", err);
     }
   }
 });
@@ -68,9 +73,10 @@ app.post("/users", async (req, res) => {
   }
 });
 
-app.delete("/users/:id", (req, res) => {
+app.delete("/users/:id", async (req, res) => {
   const userId = req.params.id;
-  User.deleteOne({ chatId: userId });
+  const response = await User.findOneAndDelete({ chatId: userId });
+  res.json(response);
 });
 
 app.get("/messages", async (req, res) => {
@@ -82,8 +88,7 @@ app.post("/messages", async (req, res) => {
   const message = new Message({
     email: req.body.email,
     fullName: req.body.fullName,
-    subject: req.body.subject,
-    message: req.body.message,
+    phone: req.body.phone,
   });
   const response = await message.save();
   res.json(response);

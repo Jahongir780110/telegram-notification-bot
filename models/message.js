@@ -5,17 +5,13 @@ module.exports = mongoose.model(
   new mongoose.Schema({
     email: {
       type: String,
-      required: true,
+      required: false,
     },
     fullName: {
       type: String,
       required: false,
     },
-    subject: {
-      type: String,
-      required: false,
-    },
-    message: {
+    phone: {
       type: String,
       required: false,
     },

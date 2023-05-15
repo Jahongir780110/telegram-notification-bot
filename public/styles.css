@@ -72,10 +72,10 @@ header .menu-icon img {
   border-color: #47c9e5;
 }
 
-.email-error {
+.phone-error {
   display: none;
 }
-.email-error.show {
+.phone-error.show {
   display: block;
 }
 

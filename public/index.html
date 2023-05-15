@@ -33,18 +33,14 @@
     </div>
 
     <div class="form d-flex">
-      <input
-        type="text"
-        placeholder="Введите номер телефона"
-        class="primary-email"
-      />
-      <button class="email-btn">УВЕДОМИТЬ МЕНЯ</button>
+      <input type="text" placeholder="Введите номер телефона" class="phone" />
+      <button class="phone-btn">УВЕДОМИТЬ МЕНЯ</button>
     </div>
 
-    <div class="text-danger mt-3 email-error">
+    <div class="text-danger mt-3 phone-error">
       Пожалуйста, введите номер телефона
     </div>
-    <div class="text-success mt-3 email-success d-none">
+    <div class="text-success mt-3 phone-success d-none">
       Номер телефона успешно отправлен
     </div>
 
@@ -92,12 +88,6 @@
         <h3>Связаться с нами</h3>
         <input type="text" placeholder="Полное имя" class="mt-4 fullName" />
         <input type="email" placeholder="Электронная почта" class="email" />
-        <input type="text" placeholder="Тема" class="subject" />
-        <textarea
-          rows="4"
-          placeholder="Ваше сообщение"
-          class="message"
-        ></textarea>
 
         <button class="send">ОТПРАВИТЬ СООБЩЕНИЕ</button>
 
@@ -158,15 +148,13 @@
       const sidebar = document.querySelector(".sidebar");
       const menuBtn = document.querySelector(".menu-icon");
 
-      const emailBtn = document.querySelector(".email-btn");
-      const primaryEmail = document.querySelector(".primary-email");
-      const emailError = document.querySelector(".email-error");
-      const emailSuccess = document.querySelector(".email-success");
+      const phoneBtn = document.querySelector(".phone-btn");
+      const phone = document.querySelector(".phone");
+      const phoneError = document.querySelector(".phone-error");
+      const phoneSuccess = document.querySelector(".phone-success");
 
       const sidebarFullName = document.querySelector(".sidebar .fullName");
       const sidebarEmail = document.querySelector(".sidebar .email");
-      const sidebarSubject = document.querySelector(".sidebar .subject");
-      const sidebarMessage = document.querySelector(".sidebar .message");
       const sidebarBtn = document.querySelector(".sidebar .send");
       const sidebarError = document.querySelector(
         ".sidebar .sidebar-form-error"
@@ -184,25 +172,25 @@
         toggleSidebar();
       });
 
-      emailBtn.addEventListener("click", async () => {
-        emailError.classList.remove("show");
-        emailSuccess.classList.add("d-none");
+      phoneBtn.addEventListener("click", async () => {
+        phoneError.classList.remove("show");
+        phoneSuccess.classList.add("d-none");
 
-        const emailValue = primaryEmail.value.trim();
+        const phoneValue = phone.value.trim();
 
-        if (emailValue.length) {
+        if (phoneValue.length) {
           await fetch(`${backendUrl}/messages`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              email: emailValue,
+              phone: phoneValue,
             }),
           });
-          emailSuccess.classList.remove("d-none");
+          phoneSuccess.classList.remove("d-none");
         } else {
-          emailError.classList.add("show");
+          phoneError.classList.add("show");
         }
       });
 
@@ -212,15 +200,8 @@
 
         const fullNameValue = sidebarFullName.value.trim();
         const emailValue = sidebarEmail.value.trim();
-        const subjectValue = sidebarSubject.value.trim();
-        const messageValue = sidebarMessage.value.trim();
 
-        if (
-          fullNameValue.length &&
-          emailValue.length &&
-          subjectValue.length &&
-          messageValue.length
-        ) {
+        if (fullNameValue.length && emailValue.length) {
           await fetch(`${backendUrl}/messages`, {
             method: "POST",
             headers: {
@@ -229,8 +210,6 @@
             body: JSON.stringify({
               email: emailValue,
               fullName: fullNameValue,
-              subject: subjectValue,
-              message: messageValue,
             }),
           });
           sidebarSuccess.classList.remove("d-none");
